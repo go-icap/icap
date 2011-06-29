@@ -75,7 +75,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 		return nil, err
 	}
 
-	f := strings.Split(s, " ", 3)
+	f := strings.SplitN(s, " ", 3)
 	if len(f) < 3 {
 		return nil, &badStringError{"malformed ICAP request", s}
 	}
@@ -93,9 +93,9 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 
 	s = req.Header.Get("Encapsulated")
 	if s == "" {
-		return nil, os.ErrorString("missing Encapsulated: header")
+		return nil, os.NewError("missing Encapsulated: header")
 	}
-	eList := strings.Split(s, ", ", -1)
+	eList := strings.Split(s, ", ")
 	var initialOffset, reqHdrLen, respHdrLen int
 	var hasBody bool
 	var prevKey string
@@ -120,7 +120,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 		case "res-hdr":
 			respHdrLen = value - prevValue
 		case "req-body", "opt-body", "res-body", "null-body":
-			return nil, os.ErrorString(fmt.Sprintf("%s must be the last section", prevKey))
+			return nil, os.NewError(fmt.Sprintf("%s must be the last section", prevKey))
 		}
 
 		switch key {
