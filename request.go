@@ -33,11 +33,13 @@ import (
 	"http"
 	"net/textproto"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 	"fmt"
 	"bufio"
 	"strconv"
+	"bytes"
 )
 
 type badStringError struct {
@@ -58,6 +60,10 @@ type Request struct {
 
 	// The ICAP header.
 	Header textproto.MIMEHeader
+
+	// The HTTP messages.
+	Request  *http.Request
+	Response *http.Response
 }
 
 // ReadRequest reads and parses a request from b.
@@ -120,7 +126,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 		case "res-hdr":
 			respHdrLen = value - prevValue
 		case "req-body", "opt-body", "res-body", "null-body":
-			return nil, os.NewError(fmt.Sprintf("%s must be the last section", prevKey))
+			return nil, fmt.Errorf("%s must be the last section", prevKey)
 		}
 
 		switch key {
@@ -159,20 +165,48 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 		}
 	}
 
+	// Construct the http.Request.
 	if rawReqHdr != nil {
-		fmt.Println("Request header:")
-		os.Stdout.Write(rawReqHdr)
-	}
-	if rawRespHdr != nil {
-		fmt.Println("Response header:")
-		os.Stdout.Write(rawRespHdr)
+		req.Request, err = http.ReadRequest(bufio.NewReader(bytes.NewBuffer(rawReqHdr)))
+		if err != nil {
+			return nil, fmt.Errorf("error while parsing HTTP request: %v", err)
+		}
+
+		if hasBody && req.Method == "REQMOD" {
+			req.Request.Body = ioutil.NopCloser(http.NewChunkedReader(b))
+		} else {
+			req.Request.Body = emptyReader(0)
+		}
 	}
 
-	if hasBody {
-		fmt.Println("Has a body")
-	} else {
-		fmt.Println("Body is null")
+	// Construct the http.Response.
+	if rawRespHdr != nil {
+		request := req.Request
+		if request == nil {
+			request, _ = http.NewRequest("GET", "/", nil)
+		}
+		req.Response, err = http.ReadResponse(bufio.NewReader(bytes.NewBuffer(rawRespHdr)), request)
+		if err != nil {
+			return nil, fmt.Errorf("error while parsing HTTP response: %v", err)
+		}
+
+		if hasBody && req.Method == "RESPMOD" {
+			req.Response.Body = ioutil.NopCloser(http.NewChunkedReader(b))
+		} else {
+			req.Response.Body = emptyReader(0)
+		}
 	}
 
 	return
+}
+
+// An emptyReader is an io.ReadCloser that always returns os.EOF.
+type emptyReader byte
+
+func (emptyReader) Read(p []byte) (n int, err os.Error) {
+	return 0, os.EOF
+}
+
+func (emptyReader) Close() os.Error {
+	return nil
 }
