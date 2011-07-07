@@ -28,7 +28,6 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 package icap
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"http"
@@ -59,18 +58,11 @@ type ResponseWriter interface {
 }
 
 type respWriter struct {
-	// req is the request that is being responded to.
-	req *Request
-
-	// header is the ICAP header to write for the response.
-	header      http.Header
-	wroteHeader bool
-
-	// conn is the underlying connection to write to
-	conn io.Writer
-
-	// cw is the chunked writer used to write the body.
-	cw io.WriteCloser
+	conn        *conn          // information on the connection
+	req         *Request       // the request that is being responded to
+	header      http.Header    // the ICAP header to write for the response
+	wroteHeader bool           // true if the headers have already been written
+	cw          io.WriteCloser // the chunked writer used to write the body
 }
 
 func (w *respWriter) Header() http.Header {
@@ -140,11 +132,8 @@ func (w *respWriter) WriteHeader(code int, httpMessage interface{}, hasBody bool
 	if _, ok := w.header["Date"]; !ok {
 		w.Header().Set("Date", time.UTC().Format(http.TimeFormat))
 	}
-	if _, ok := w.header["Connection"]; !ok {
-		w.Header().Set("Connection", "close")
-	}
 
-	bw := bufio.NewWriter(w.conn)
+	bw := w.conn.buf.Writer
 	status := StatusText(code)
 	if status == "" {
 		status = fmt.Sprintf("status code %d", code)
@@ -157,12 +146,25 @@ func (w *respWriter) WriteHeader(code int, httpMessage interface{}, hasBody bool
 		bw.Write(header)
 	}
 
-	bw.Flush()
 	w.wroteHeader = true
 
 	if hasBody {
-		w.cw = http.NewChunkedWriter(w.conn)
+		w.cw = http.NewChunkedWriter(w.conn.buf.Writer)
 	}
+}
+
+func (w *respWriter) finishRequest() {
+	if !w.wroteHeader {
+		w.WriteHeader(http.StatusOK, nil, false)
+	}
+
+	if w.cw != nil {
+		w.cw.Close()
+		w.cw = nil
+		io.WriteString(w.conn.buf, "\r\n")
+	}
+
+	w.conn.buf.Flush()
 }
 
 // httpRequestHeader returns the headers for an HTTP request

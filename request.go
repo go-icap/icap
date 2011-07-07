@@ -51,15 +51,12 @@ func (e *badStringError) String() string { return fmt.Sprintf("%s %q", e.what, e
 
 // A Request represents a parsed ICAP request.
 type Request struct {
-	Method string    // REQMOD, RESPMOD, OPTIONS, etc.
-	RawURL string    // The URL given in the request.
-	URL    *http.URL // Parsed URL.
-
-	// The protocol version.
-	Proto string // "ICAP/1.0"
-
-	// The ICAP header.
-	Header textproto.MIMEHeader
+	Method     string               // REQMOD, RESPMOD, OPTIONS, etc.
+	RawURL     string               // The URL given in the request.
+	URL        *http.URL            // Parsed URL.
+	Proto      string               // The protocol version.
+	Header     textproto.MIMEHeader // The ICAP header
+	RemoteAddr string               // the address of the computer sending the request
 
 	// The HTTP messages.
 	Request  *http.Request

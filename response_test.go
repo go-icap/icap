@@ -1,16 +1,13 @@
 package icap
 
 import (
-	"bufio"
-	"bytes"
-	"http"
 	"io"
 	"io/ioutil"
-	"strings"
+	"net"
 	"testing"
 )
 
-// REQMOD example 2 from RFC 3507
+// REQMOD example 2 from RFC 3507, adjusted for order of headers, etc.
 func TestREQMOD2(t *testing.T) {
 	request :=
 		"REQMOD icap://icap-server.net/server?arg=87 ICAP/1.0\r\n" +
@@ -25,10 +22,10 @@ func TestREQMOD2(t *testing.T) {
 			"\r\n" +
 			"1e\r\n" +
 			"I am posting this information.\r\n" +
-			"0\r\n"
+			"0\r\n" +
+			"\r\n"
 	resp :=
 		"ICAP/1.0 200 OK\r\n" +
-			"Connection: close\r\n" +
 			"Date: Mon, 10 Jan 2000  09:55:21 GMT\r\n" +
 			"Encapsulated: req-hdr=0, req-body=231\r\n" +
 			"Istag: \"W3E4R7U9-L2E4-2\"\r\n" +
@@ -43,17 +40,26 @@ func TestREQMOD2(t *testing.T) {
 			"\r\n" +
 			"2d\r\n" +
 			"I am posting this information.  ICAP powered!\r\n" +
-			"0\r\n"
+			"0\r\n" +
+			"\r\n"
 
-	r := bufio.NewReader(strings.NewReader(request))
-	req, _ := ReadRequest(r)
+	p1, p2 := net.Pipe()
+	c, err := newConn(p2, HandlerFunc(HandleREQMOD2))
+	go c.serve()
 
-	w := &respWriter{
-		req:    req,
-		header: make(http.Header),
-		conn:   new(bytes.Buffer),
+	io.WriteString(p1, request)
+	respBuffer := make([]byte, len(resp))
+	_, err = io.ReadFull(p1, respBuffer)
+
+	if err != nil {
+		t.Fatalf("error while reading response: %v", err)
 	}
 
+	response := string(respBuffer)
+	checkString("Response", response, resp, t)
+}
+
+func HandleREQMOD2(w ResponseWriter, req *Request) {
 	w.Header().Set("Date", "Mon, 10 Jan 2000  09:55:21 GMT")
 	w.Header().Set("Server", "ICAP-Server-Software/1.0")
 	w.Header().Set("ISTag", "\"W3E4R7U9-L2E4-2\"")
@@ -67,8 +73,4 @@ func TestREQMOD2(t *testing.T) {
 
 	w.WriteHeader(200, req.Request, true)
 	io.WriteString(w, newBody)
-	w.cw.Close()
-
-	response := string(w.conn.(*bytes.Buffer).Bytes())
-	checkString("Response", response, resp, t)
 }
