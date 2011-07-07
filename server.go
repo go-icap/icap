@@ -134,3 +134,76 @@ func (c *conn) serve() {
 
 	c.close()
 }
+
+// A Server defines parameters for running an ICAP server.
+type Server struct {
+	Addr         string  // TCP address to listen on, ":1344" if empty
+	Handler      Handler // handler to invoke
+	ReadTimeout  int64   // the net.Conn.SetReadTimeout value for new connections
+	WriteTimeout int64   // the net.Conn.SetWriteTimeout value for new connections
+}
+
+// ListenAndServe listens on the TCP network address srv.Addr and then
+// calls Serve to handle requests on incoming connections.  If
+// srv.Addr is blank, ":1344" is used.
+func (srv *Server) ListenAndServe() os.Error {
+	addr := srv.Addr
+	if addr == "" {
+		addr = ":1344"
+	}
+	l, e := net.Listen("tcp", addr)
+	if e != nil {
+		return e
+	}
+	return srv.Serve(l)
+}
+
+// Serve accepts incoming connections on the Listener l, creating a
+// new service thread for each.  The service threads read requests and
+// then call srv.Handler to reply to them.
+func (srv *Server) Serve(l net.Listener) os.Error {
+	defer l.Close()
+	handler := srv.Handler
+	if handler == nil {
+		handler = DefaultServeMux
+	}
+
+	for {
+		rw, e := l.Accept()
+		if e != nil {
+			if ne, ok := e.(net.Error); ok && ne.Temporary() {
+				log.Printf("icap: Accept error: %v", e)
+				continue
+			}
+			return e
+		}
+		if srv.ReadTimeout != 0 {
+			rw.SetReadTimeout(srv.ReadTimeout)
+		}
+		if srv.WriteTimeout != 0 {
+			rw.SetWriteTimeout(srv.WriteTimeout)
+		}
+		c, err := newConn(rw, handler)
+		if err != nil {
+			continue
+		}
+		go c.serve()
+	}
+	panic("not reached")
+}
+
+// Serve accepts incoming ICAP connections on the listener l,
+// creating a new service thread for each.  The service threads
+// read requests and then call handler to reply to them.
+func Serve(l net.Listener, handler Handler) os.Error {
+	srv := &Server{Handler: handler}
+	return srv.Serve(l)
+}
+
+// ListenAndServe listens on the TCP network address addr
+// and then calls Serve with handler to handle requests
+// on incoming connections.
+func ListenAndServe(addr string, handler Handler) os.Error {
+	server := &Server{Addr: addr, Handler: handler}
+	return server.ListenAndServe()
+}

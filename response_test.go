@@ -43,13 +43,17 @@ func TestREQMOD2(t *testing.T) {
 			"0\r\n" +
 			"\r\n"
 
-	p1, p2 := net.Pipe()
-	c, err := newConn(p2, HandlerFunc(HandleREQMOD2))
-	go c.serve()
+	HandleFunc("/server", HandleREQMOD2)
+	go ListenAndServe(":11344", nil)
 
-	io.WriteString(p1, request)
+	conn, err := net.Dial("tcp", "localhost:11344")
+	if err != nil {
+		t.Fatalf("could not connect to ICAP server on localhost")
+	}
+
+	io.WriteString(conn, request)
 	respBuffer := make([]byte, len(resp))
-	_, err = io.ReadFull(p1, respBuffer)
+	_, err = io.ReadFull(conn, respBuffer)
 
 	if err != nil {
 		t.Fatalf("error while reading response: %v", err)

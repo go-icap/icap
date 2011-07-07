@@ -7,6 +7,7 @@ GOFILES= \
 	response.go \
 	status.go \
 	server.go \
+	mux.go \
 	
 include $(GOROOT)/src/Make.pkg
 
