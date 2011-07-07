@@ -8,6 +8,7 @@ GOFILES= \
 	status.go \
 	server.go \
 	mux.go \
+	bridge.go \
 	
 include $(GOROOT)/src/Make.pkg
 

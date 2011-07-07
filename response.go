@@ -178,7 +178,7 @@ func httpRequestHeader(req *http.Request) (hdr []byte, err os.Error) {
 			return nil, os.NewError("icap: httpRequestHeader called on Request with no URL")
 		}
 	}
-	
+
 	host := req.URL.Host
 	if host == "" {
 		host = req.Host
@@ -210,7 +210,11 @@ func httpResponseHeader(resp *http.Response) (hdr []byte, err os.Error) {
 			text = "status code " + strconv.Itoa(resp.StatusCode)
 		}
 	}
-	fmt.Fprintf(buf, "HTTP/%d.%d %d %s\r\n", resp.ProtoMajor, resp.ProtoMinor, resp.StatusCode, text)
+	proto := resp.Proto
+	if proto == "" {
+		proto = "HTTP/1.1"
+	}
+	fmt.Fprintf(buf, "%s %d %s\r\n", proto, resp.StatusCode, text)
 	resp.Header.WriteSubset(buf, map[string]bool{
 		"Transfer-Encoding": true,
 		"Content-Length":    true,
