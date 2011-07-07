@@ -126,6 +126,7 @@ func (c *conn) serve() {
 		w, err := c.readRequest()
 		if err != nil {
 			break
+			panic(fmt.Errorf("error while reading request: %v", err))
 		}
 
 		c.handler.ServeICAP(w, w.req)

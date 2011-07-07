@@ -96,7 +96,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 
 	s = req.Header.Get("Encapsulated")
 	if s == "" {
-		return nil, os.NewError("missing Encapsulated: header")
+		return req, nil // No HTTP headers or body.
 	}
 	eList := strings.Split(s, ", ")
 	var initialOffset, reqHdrLen, respHdrLen int

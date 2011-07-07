@@ -172,22 +172,20 @@ func (w *respWriter) finishRequest() {
 func httpRequestHeader(req *http.Request) (hdr []byte, err os.Error) {
 	buf := new(bytes.Buffer)
 
-	host := req.Host
-	if host == "" {
-		if req.URL == nil {
-			return nil, os.NewError("icap: httpRequestHeader called on Request with no Host or URL set")
+	if req.URL == nil {
+		req.URL, err = http.ParseURL(req.RawURL)
+		if err != nil {
+			return nil, os.NewError("icap: httpRequestHeader called on Request with no URL")
 		}
-		host = req.URL.Host
 	}
-	_, ok := req.Header["Host"]
-	if !ok {
-		req.Header.Set("Host", host)
+	
+	host := req.URL.Host
+	if host == "" {
+		host = req.Host
 	}
+	req.Header.Set("Host", host)
 
-	uri := req.RawURL
-	if uri == "" {
-		uri = req.URL.String()
-	}
+	uri := req.URL.String()
 
 	fmt.Fprintf(buf, "%s %s %s\r\n", valueOrDefault(req.Method, "GET"), uri, valueOrDefault(req.Proto, "HTTP/1.1"))
 	req.Header.WriteSubset(buf, map[string]bool{
