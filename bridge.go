@@ -85,3 +85,9 @@ func NewBridgedResponseWriter(w ResponseWriter) http.ResponseWriter {
 
 	return rw
 }
+
+// Pass use the local HTTP server to generate a response for an ICAP request.
+func ServeLocally(w ResponseWriter, req *Request) {
+	brw := NewBridgedResponseWriter(w)
+	http.DefaultServeMux.ServeHTTP(brw, req.Request)
+}
