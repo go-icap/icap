@@ -4,6 +4,8 @@ TARG=icap
 
 GOFILES= \
 	request.go \
+	response.go \
+	status.go \
 	
 include $(GOROOT)/src/Make.pkg
 
