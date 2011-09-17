@@ -40,6 +40,7 @@ import (
 	"bufio"
 	"strconv"
 	"bytes"
+	"url"
 )
 
 type badStringError struct {
@@ -53,7 +54,7 @@ func (e *badStringError) String() string { return fmt.Sprintf("%s %q", e.what, e
 type Request struct {
 	Method     string               // REQMOD, RESPMOD, OPTIONS, etc.
 	RawURL     string               // The URL given in the request.
-	URL        *http.URL            // Parsed URL.
+	URL        *url.URL             // Parsed URL.
 	Proto      string               // The protocol version.
 	Header     textproto.MIMEHeader // The ICAP header
 	RemoteAddr string               // the address of the computer sending the request
@@ -84,7 +85,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 	}
 	req.Method, req.RawURL, req.Proto = f[0], f[1], f[2]
 
-	req.URL, err = http.ParseRequestURL(req.RawURL)
+	req.URL, err = url.ParseRequest(req.RawURL)
 	if err != nil {
 		return nil, err
 	}

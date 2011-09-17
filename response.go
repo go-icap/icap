@@ -37,6 +37,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"url"
 )
 
 type ResponseWriter interface {
@@ -173,7 +174,7 @@ func httpRequestHeader(req *http.Request) (hdr []byte, err os.Error) {
 	buf := new(bytes.Buffer)
 
 	if req.URL == nil {
-		req.URL, err = http.ParseURL(req.RawURL)
+		req.URL, err = url.Parse(req.RawURL)
 		if err != nil {
 			return nil, os.NewError("icap: httpRequestHeader called on Request with no URL")
 		}

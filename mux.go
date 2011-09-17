@@ -29,6 +29,7 @@ import (
 	"http"
 	"path"
 	"strings"
+	"url"
 )
 
 // ServeMux is an ICAP request multiplexer.
@@ -169,14 +170,14 @@ func (rh *redirectHandler) ServeICAP(w ResponseWriter, r *Request) {
 // RedirectHandler returns a request handler that redirects
 // each request it receives to the given url using the given
 // status code.
-func RedirectHandler(url string, code int) Handler {
-	return &redirectHandler{url, code}
+func RedirectHandler(url_ string, code int) Handler {
+	return &redirectHandler{url_, code}
 }
 
 // Redirect replies to the request with a redirect to url,
 // which may be a path relative to the request path.
-func Redirect(w ResponseWriter, r *Request, url string, code int) {
-	if u, err := http.ParseURL(url); err == nil {
+func Redirect(w ResponseWriter, r *Request, url_ string, code int) {
+	if u, err := url.Parse(url_); err == nil {
 		// If url was relative, make absolute by
 		// combining with request path.
 		// The browser would probably do this for us,
@@ -187,27 +188,27 @@ func Redirect(w ResponseWriter, r *Request, url string, code int) {
 		}
 		if u.Scheme == "" {
 			// no leading icap://server
-			if url == "" || url[0] != '/' {
+			if url_ == "" || url_[0] != '/' {
 				// make relative path absolute
 				olddir, _ := path.Split(oldpath)
-				url = olddir + url
+				url_ = olddir + url_
 			}
 
 			var query string
-			if i := strings.Index(url, "?"); i != -1 {
-				url, query = url[:i], url[i:]
+			if i := strings.Index(url_, "?"); i != -1 {
+				url_, query = url_[:i], url_[i:]
 			}
 
 			// clean up but preserve trailing slash
-			trailing := url[len(url)-1] == '/'
-			url = path.Clean(url)
-			if trailing && url[len(url)-1] != '/' {
-				url += "/"
+			trailing := url_[len(url_)-1] == '/'
+			url_ = path.Clean(url_)
+			if trailing && url_[len(url_)-1] != '/' {
+				url_ += "/"
 			}
-			url += query
+			url_ += query
 		}
 	}
 
-	w.Header().Set("Location", url)
+	w.Header().Set("Location", url_)
 	w.WriteHeader(code, nil, false)
 }
