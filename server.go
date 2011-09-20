@@ -122,16 +122,13 @@ func (c *conn) serve() {
 		log.Print(buf.String())
 	}()
 
-	for {
-		w, err := c.readRequest()
-		if err != nil {
-			break
-			panic(fmt.Errorf("error while reading request: %v", err))
-		}
-
-		c.handler.ServeICAP(w, w.req)
-		w.finishRequest()
+	w, err := c.readRequest()
+	if err != nil {
+		panic(fmt.Errorf("error while reading request: %v", err))
 	}
+
+	c.handler.ServeICAP(w, w.req)
+	w.finishRequest()
 
 	c.close()
 }
