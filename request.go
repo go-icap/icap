@@ -26,7 +26,6 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMA
 // Reading and parsing of ICAP requests.
 
 // Package icap provides an extensible ICAP server.
-// (At least it will when it is finished!)
 package icap
 
 import (
