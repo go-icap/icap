@@ -34,7 +34,6 @@ import (
 	"net/textproto"
 	"io"
 	"io/ioutil"
-	"os"
 	"strings"
 	"fmt"
 	"bufio"
@@ -48,7 +47,7 @@ type badStringError struct {
 	str  string
 }
 
-func (e *badStringError) String() string { return fmt.Sprintf("%s %q", e.what, e.str) }
+func (e *badStringError) Error() string { return fmt.Sprintf("%s %q", e.what, e.str) }
 
 // A Request represents a parsed ICAP request.
 type Request struct {
@@ -65,7 +64,7 @@ type Request struct {
 }
 
 // ReadRequest reads and parses a request from b.
-func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
+func ReadRequest(b *bufio.Reader) (req *Request, err error) {
 	tp := textproto.NewReader(b)
 	req = new(Request)
 
@@ -73,7 +72,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 	var s string
 	s, err = tp.ReadLine()
 	if err != nil {
-		if err == os.EOF {
+		if err == io.EOF {
 			err = io.ErrUnexpectedEOF
 		}
 		return nil, err
@@ -201,10 +200,10 @@ func ReadRequest(b *bufio.Reader) (req *Request, err os.Error) {
 // An emptyReader is an io.ReadCloser that always returns os.EOF.
 type emptyReader byte
 
-func (emptyReader) Read(p []byte) (n int, err os.Error) {
-	return 0, os.EOF
+func (emptyReader) Read(p []byte) (n int, err error) {
+	return 0, io.EOF
 }
 
-func (emptyReader) Close() os.Error {
+func (emptyReader) Close() error {
 	return nil
 }

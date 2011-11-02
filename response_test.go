@@ -26,6 +26,7 @@ func TestREQMOD2(t *testing.T) {
 			"\r\n"
 	resp :=
 		"ICAP/1.0 200 OK\r\n" +
+			"Connection: close\r\n" +
 			"Date: Mon, 10 Jan 2000  09:55:21 GMT\r\n" +
 			"Encapsulated: req-hdr=0, req-body=231\r\n" +
 			"Istag: \"W3E4R7U9-L2E4-2\"\r\n" +

@@ -31,7 +31,6 @@ package icap
 import (
 	"http"
 	"log"
-	"os"
 	"time"
 )
 
@@ -45,7 +44,7 @@ func (w *bridgedRespWriter) Header() http.Header {
 	return w.header
 }
 
-func (w *bridgedRespWriter) Write(p []byte) (n int, err os.Error) {
+func (w *bridgedRespWriter) Write(p []byte) (n int, err error) {
 	if !w.wroteHeader {
 		w.WriteHeader(http.StatusOK)
 	}

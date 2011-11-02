@@ -34,7 +34,6 @@ import (
 	"http"
 	"log"
 	"net"
-	"os"
 	"runtime/debug"
 )
 
@@ -67,7 +66,7 @@ type conn struct {
 }
 
 // Create new connection from rwc.
-func newConn(rwc net.Conn, handler Handler) (c *conn, err os.Error) {
+func newConn(rwc net.Conn, handler Handler) (c *conn, err error) {
 	c = new(conn)
 	c.remoteAddr = rwc.RemoteAddr().String()
 	c.handler = handler
@@ -80,7 +79,7 @@ func newConn(rwc net.Conn, handler Handler) (c *conn, err os.Error) {
 }
 
 // Read next request from connection.
-func (c *conn) readRequest() (w *respWriter, err os.Error) {
+func (c *conn) readRequest() (w *respWriter, err error) {
 	var req *Request
 	if req, err = ReadRequest(c.buf.Reader); err != nil {
 		return nil, err
@@ -144,7 +143,7 @@ type Server struct {
 // ListenAndServe listens on the TCP network address srv.Addr and then
 // calls Serve to handle requests on incoming connections.  If
 // srv.Addr is blank, ":1344" is used.
-func (srv *Server) ListenAndServe() os.Error {
+func (srv *Server) ListenAndServe() error {
 	addr := srv.Addr
 	if addr == "" {
 		addr = ":1344"
@@ -159,7 +158,7 @@ func (srv *Server) ListenAndServe() os.Error {
 // Serve accepts incoming connections on the Listener l, creating a
 // new service thread for each.  The service threads read requests and
 // then call srv.Handler to reply to them.
-func (srv *Server) Serve(l net.Listener) os.Error {
+func (srv *Server) Serve(l net.Listener) error {
 	defer l.Close()
 	handler := srv.Handler
 	if handler == nil {
@@ -193,7 +192,7 @@ func (srv *Server) Serve(l net.Listener) os.Error {
 // Serve accepts incoming ICAP connections on the listener l,
 // creating a new service thread for each.  The service threads
 // read requests and then call handler to reply to them.
-func Serve(l net.Listener, handler Handler) os.Error {
+func Serve(l net.Listener, handler Handler) error {
 	srv := &Server{Handler: handler}
 	return srv.Serve(l)
 }
@@ -201,7 +200,7 @@ func Serve(l net.Listener, handler Handler) os.Error {
 // ListenAndServe listens on the TCP network address addr
 // and then calls Serve with handler to handle requests
 // on incoming connections.
-func ListenAndServe(addr string, handler Handler) os.Error {
+func ListenAndServe(addr string, handler Handler) error {
 	server := &Server{Addr: addr, Handler: handler}
 	return server.ListenAndServe()
 }

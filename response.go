@@ -29,15 +29,14 @@ package icap
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"http"
 	"io"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"time"
-	"url"
 )
 
 type ResponseWriter interface {
@@ -49,7 +48,7 @@ type ResponseWriter interface {
 	// Write writes the data to the connection as part of an ICAP reply.
 	// If WriteHeader has not yet been called, Write calls WriteHeader(http.StatusOK, nil)
 	// before writing the data.
-	Write([]byte) (int, os.Error)
+	Write([]byte) (int, error)
 
 	// WriteHeader sends an ICAP response header with status code.
 	// Then it sends an HTTP header if httpMessage is not nil.
@@ -70,13 +69,13 @@ func (w *respWriter) Header() http.Header {
 	return w.header
 }
 
-func (w *respWriter) Write(p []byte) (n int, err os.Error) {
+func (w *respWriter) Write(p []byte) (n int, err error) {
 	if !w.wroteHeader {
 		w.WriteHeader(http.StatusOK, nil, true)
 	}
 
 	if w.cw == nil {
-		return 0, os.NewError("called Write() on an icap.ResponseWriter that should not have a body")
+		return 0, errors.New("called Write() on an icap.ResponseWriter that should not have a body")
 	}
 	return w.cw.Write(p)
 }
@@ -90,7 +89,7 @@ func (w *respWriter) WriteHeader(code int, httpMessage interface{}, hasBody bool
 	// Make the HTTP header and the Encapsulated: header.
 	var header []byte
 	var encap string
-	var err os.Error
+	var err error
 
 	switch msg := httpMessage.(type) {
 	case *http.Request:
@@ -172,13 +171,12 @@ func (w *respWriter) finishRequest() {
 
 // httpRequestHeader returns the headers for an HTTP request
 // as a slice of bytes in a form suitable for including in an ICAP message.
-func httpRequestHeader(req *http.Request) (hdr []byte, err os.Error) {
+func httpRequestHeader(req *http.Request) (hdr []byte, err error) {
 	buf := new(bytes.Buffer)
 
 	if req.URL == nil {
-		req.URL, err = url.Parse(req.RawURL)
 		if err != nil {
-			return nil, os.NewError("icap: httpRequestHeader called on Request with no URL")
+			return nil, errors.New("icap: httpRequestHeader called on Request with no URL")
 		}
 	}
 
@@ -202,7 +200,7 @@ func httpRequestHeader(req *http.Request) (hdr []byte, err os.Error) {
 
 // httpResponseHeader returns the headers for an HTTP response
 // as a slice of bytes.
-func httpResponseHeader(resp *http.Response) (hdr []byte, err os.Error) {
+func httpResponseHeader(resp *http.Response) (hdr []byte, err error) {
 	buf := new(bytes.Buffer)
 
 	// Status line
