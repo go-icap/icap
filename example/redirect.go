@@ -53,6 +53,7 @@ func toGolang(w icap.ResponseWriter, req *icap.Request) {
 			req.Request.Host = "golang.org"
 			req.Request.URL.Host = "golang.org"
 			w.WriteHeader(200, req.Request, false)
+			// TODO: copy the body (if any) from the original request.
 		default:
 			// Return the request unmodified.
 			w.WriteHeader(204, nil, false)
