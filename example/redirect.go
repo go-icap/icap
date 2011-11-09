@@ -18,8 +18,8 @@ package main
 
 import (
 	"fmt"
-	"http"
 	"go-icap.googlecode.com/hg"
+	"net/http"
 	"os"
 )
 
@@ -27,7 +27,7 @@ var ISTag = "\"GOLANG\""
 
 func main() {
 	// Set the files to be made available under http://gateway/
-	http.Handle("/", http.FileServer(http.Dir(os.Getenv("HOME") + "/Sites")))
+	http.Handle("/", http.FileServer(http.Dir(os.Getenv("HOME")+"/Sites")))
 
 	icap.HandleFunc("/golang", toGolang)
 	icap.ListenAndServe(":11344", icap.HandlerFunc(toGolang))

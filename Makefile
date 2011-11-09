@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=icap
+TARG=go-icap.googlecode.com/hg
 
 GOFILES= \
 	request.go \
