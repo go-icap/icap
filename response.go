@@ -10,9 +10,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"http"
 	"io"
 	"log"
+	"net/http"
+	"net/http/httputil"
 	"strconv"
 	"strings"
 	"time"
@@ -130,7 +131,7 @@ func (w *respWriter) WriteHeader(code int, httpMessage interface{}, hasBody bool
 	w.wroteHeader = true
 
 	if hasBody {
-		w.cw = http.NewChunkedWriter(w.conn.buf.Writer)
+		w.cw = httputil.NewChunkedWriter(w.conn.buf.Writer)
 	}
 }
 

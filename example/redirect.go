@@ -18,8 +18,8 @@ package main
 
 import (
 	"fmt"
-	"http"
 	"go-icap.googlecode.com/hg"
+	"net/http"
 	"os"
 )
 
@@ -27,7 +27,7 @@ var ISTag = "\"GOLANG\""
 
 func main() {
 	// Set the files to be made available under http://gateway/
-	http.Handle("/", http.FileServer(http.Dir(os.Getenv("HOME") + "/Sites")))
+	http.Handle("/", http.FileServer(http.Dir(os.Getenv("HOME")+"/Sites")))
 
 	icap.HandleFunc("/golang", toGolang)
 	icap.ListenAndServe(":11344", icap.HandlerFunc(toGolang))
@@ -53,6 +53,7 @@ func toGolang(w icap.ResponseWriter, req *icap.Request) {
 			req.Request.Host = "golang.org"
 			req.Request.URL.Host = "golang.org"
 			w.WriteHeader(200, req.Request, false)
+			// TODO: copy the body (if any) from the original request.
 		default:
 			// Return the request unmodified.
 			w.WriteHeader(204, nil, false)

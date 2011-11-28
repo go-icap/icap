@@ -7,7 +7,7 @@
 package icap
 
 import (
-	"http"
+	"net/http"
 )
 
 var statusText = map[int]string{
