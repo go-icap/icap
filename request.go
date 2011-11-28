@@ -8,16 +8,17 @@
 package icap
 
 import (
-	"http"
-	"net/textproto"
+	"bufio"
+	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"strings"
-	"fmt"
-	"bufio"
+	"net/http"
+	"net/http/httputil"
+	"net/textproto"
+	"net/url"
 	"strconv"
-	"bytes"
-	"url"
+	"strings"
 )
 
 type badStringError struct {
@@ -148,7 +149,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err error) {
 		}
 
 		if hasBody && req.Method == "REQMOD" {
-			req.Request.Body = ioutil.NopCloser(http.NewChunkedReader(b))
+			req.Request.Body = ioutil.NopCloser(httputil.NewChunkedReader(b))
 		} else {
 			req.Request.Body = emptyReader(0)
 		}
@@ -166,7 +167,7 @@ func ReadRequest(b *bufio.Reader) (req *Request, err error) {
 		}
 
 		if hasBody && req.Method == "RESPMOD" {
-			req.Response.Body = ioutil.NopCloser(http.NewChunkedReader(b))
+			req.Response.Body = ioutil.NopCloser(httputil.NewChunkedReader(b))
 		} else {
 			req.Response.Body = emptyReader(0)
 		}

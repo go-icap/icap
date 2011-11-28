@@ -3,3 +3,5 @@
 \.[568]$
 \.out$
 ^_
+\.orig$
+example/example

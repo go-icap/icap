@@ -5,10 +5,10 @@
 package icap
 
 import (
-	"http"
+	"net/http"
+	"net/url"
 	"path"
 	"strings"
-	"url"
 )
 
 // ServeMux is an ICAP request multiplexer.

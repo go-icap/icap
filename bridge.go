@@ -8,8 +8,8 @@
 package icap
 
 import (
-	"http"
 	"log"
+	"net/http"
 	"time"
 )
 
