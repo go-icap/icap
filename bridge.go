@@ -45,7 +45,7 @@ func (w *bridgedRespWriter) WriteHeader(code int) {
 	}
 
 	if _, ok := w.header["Date"]; !ok {
-		w.Header().Set("Date", time.UTC().Format(http.TimeFormat))
+		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	}
 
 	resp := new(http.Response)

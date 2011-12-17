@@ -110,7 +110,7 @@ func (w *respWriter) WriteHeader(code int, httpMessage interface{}, hasBody bool
 
 	w.header.Set("Encapsulated", encap)
 	if _, ok := w.header["Date"]; !ok {
-		w.Header().Set("Date", time.UTC().Format(http.TimeFormat))
+		w.Header().Set("Date", time.Now().UTC().Format(http.TimeFormat))
 	}
 
 	w.header.Set("Connection", "close")
