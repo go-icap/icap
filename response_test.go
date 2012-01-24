@@ -11,6 +11,8 @@ import (
 	"testing"
 )
 
+const serverAddr = "localhost:11344"
+
 // REQMOD example 2 from RFC 3507, adjusted for order of headers, etc.
 func TestREQMOD2(t *testing.T) {
 	request :=
@@ -49,9 +51,9 @@ func TestREQMOD2(t *testing.T) {
 			"\r\n"
 
 	HandleFunc("/server", HandleREQMOD2)
-	go ListenAndServe(":11344", nil)
+	go ListenAndServe(serverAddr, nil)
 
-	conn, err := net.Dial("tcp", "localhost:11344")
+	conn, err := net.Dial("tcp", serverAddr)
 	if err != nil {
 		t.Fatalf("could not connect to ICAP server on localhost")
 	}
