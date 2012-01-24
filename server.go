@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
 
 // Objects implementing the Handler interface can be registered
@@ -115,8 +116,8 @@ func (c *conn) serve() {
 type Server struct {
 	Addr         string  // TCP address to listen on, ":1344" if empty
 	Handler      Handler // handler to invoke
-	ReadTimeout  int64   // the net.Conn.SetReadTimeout value for new connections
-	WriteTimeout int64   // the net.Conn.SetWriteTimeout value for new connections
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
 }
 
 // ListenAndServe listens on the TCP network address srv.Addr and then
@@ -154,10 +155,10 @@ func (srv *Server) Serve(l net.Listener) error {
 			return e
 		}
 		if srv.ReadTimeout != 0 {
-			rw.SetReadTimeout(srv.ReadTimeout)
+			rw.SetReadDeadline(time.Now().Add(srv.ReadTimeout))
 		}
 		if srv.WriteTimeout != 0 {
-			rw.SetWriteTimeout(srv.WriteTimeout)
+			rw.SetWriteDeadline(time.Now().Add(srv.WriteTimeout))
 		}
 		c, err := newConn(rw, handler)
 		if err != nil {
