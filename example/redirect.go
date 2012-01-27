@@ -17,8 +17,8 @@ Try browsing to http://gateway/ and http://java.com/
 package main
 
 import (
+	"code.google.com/p/go-icap"
 	"fmt"
-	"go-icap.googlecode.com/hg"
 	"net/http"
 	"os"
 )
