@@ -14,7 +14,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"net/textproto"
 	"net/url"
 	"strconv"
@@ -146,7 +145,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 	if hasBody {
 		if p := req.Header.Get("Preview"); p != "" {
 			moreBody := true
-			req.Preview, err = ioutil.ReadAll(httputil.NewChunkedReader(b))
+			req.Preview, err = ioutil.ReadAll(newChunkedReader(b))
 			if err != nil {
 				if strings.Contains(err.Error(), "ieof") {
 					// The data ended with "0; ieof", which the HTTP chunked reader doesn't understand.
@@ -162,7 +161,7 @@ func ReadRequest(b *bufio.ReadWriter) (req *Request, err error) {
 			}
 			bodyReader = ioutil.NopCloser(r)
 		} else {
-			bodyReader = ioutil.NopCloser(httputil.NewChunkedReader(b))
+			bodyReader = ioutil.NopCloser(newChunkedReader(b))
 		}
 	}
 
@@ -229,7 +228,7 @@ func (c *continueReader) Read(p []byte) (n int, err error) {
 		if err != nil {
 			return 0, err
 		}
-		c.cr = httputil.NewChunkedReader(c.buf)
+		c.cr = newChunkedReader(c.buf)
 	}
 
 	return c.cr.Read(p)
