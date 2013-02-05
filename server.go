@@ -103,7 +103,9 @@ func (c *conn) serve() {
 
 	w, err := c.readRequest()
 	if err != nil {
-		panic(fmt.Errorf("error while reading request: %v", err))
+		log.Println("error while reading request:", err)
+		c.rwc.Close()
+		return
 	}
 
 	c.handler.ServeICAP(w, w.req)
