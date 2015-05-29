@@ -1,0 +1,1 @@
+The icap package is a library for writing ICAP (Internet Content Adaptation Protocol) servers. It has a very similar interface to the http package in the standard library.
